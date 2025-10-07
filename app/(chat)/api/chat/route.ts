@@ -17,7 +17,9 @@ import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { auth, type UserType } from "@/app/(auth)/auth";
+import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
+import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
@@ -265,8 +267,8 @@ export async function POST(request: Request) {
 
             // Track OpenAI usage in analytics
             const modelId = finalMergedUsage.modelId || selectedChatModel;
-            const promptTokens = finalMergedUsage.promptTokens || 0;
-            const completionTokens = finalMergedUsage.completionTokens || 0;
+            const promptTokens = finalMergedUsage.inputTokens || 0;
+            const completionTokens = finalMergedUsage.outputTokens || 0;
             const totalTokens = finalMergedUsage.totalTokens || 0;
 
             // Calculate estimated cost

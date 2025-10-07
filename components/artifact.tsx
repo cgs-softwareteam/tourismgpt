@@ -63,7 +63,6 @@ function PureArtifact({
   regenerate,
   votes,
   isReadonly,
-  selectedModelId,
 }: {
   chatId: string;
   input: string;
@@ -76,7 +75,6 @@ function PureArtifact({
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
-  selectedModelId: string;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
 
@@ -330,7 +328,6 @@ function PureArtifact({
                     className="bg-background dark:bg-muted"
                     input={input}
                     messages={messages}
-                    selectedModelId={selectedModelId}
                     sendMessage={sendMessage}
                     setInput={setInput}
                     setMessages={setMessages}
@@ -502,9 +499,6 @@ function PureArtifact({
 export const Artifact = memo(
   PureArtifact,
   (prevProps, nextProps) => {
-    if (!equal(prevProps.attachments, nextProps.attachments)) {
-      return false;
-    }
     if (!equal(prevProps.messages, nextProps.messages)) {
       return false;
     }

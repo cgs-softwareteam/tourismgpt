@@ -10,6 +10,12 @@ import type { AppUsage } from "./usage";
 
 export type DataPart = { type: "append-message"; message: string };
 
+export type Attachment = {
+  name?: string;
+  url: string;
+  contentType?: string;
+};
+
 export const messageMetadataSchema = z.object({
   createdAt: z.string(),
 });
