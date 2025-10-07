@@ -333,7 +333,7 @@ test.describe
             createdAt: new Date().toISOString(),
           },
           selectedChatModel: "chat-model",
-          selectedVisibilityType: "public",
+          selectedVisibilityType: "private",
         },
       });
 

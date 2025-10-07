@@ -17,9 +17,7 @@ import type { ModelCatalog } from "tokenlens/core";
 import { fetchModels } from "tokenlens/fetch";
 import { getUsage } from "tokenlens/helpers";
 import { auth, type UserType } from "@/app/(auth)/auth";
-import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
-import type { ChatModel } from "@/lib/ai/models";
 import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
@@ -37,6 +35,8 @@ import {
   saveMessages,
   updateChatLastContextById,
 } from "@/lib/db/queries";
+import { db } from "@/lib/db";
+import { openaiUsage } from "@/lib/db/schema";
 import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
@@ -181,14 +181,12 @@ export async function POST(request: Request) {
           messages: convertToModelMessages(uiMessages),
           stopWhen: stepCountIs(5),
           experimental_activeTools:
-            selectedChatModel === "chat-model-reasoning"
-              ? []
-              : [
-                  "getWeather",
-                  "createDocument",
-                  "updateDocument",
-                  "requestSuggestions",
-                ],
+        [
+          "getWeather",
+          "createDocument",
+          "updateDocument",
+          "requestSuggestions",
+        ],
           experimental_transform: smoothStream({ chunking: "word" }),
           tools: {
             getWeather,
@@ -264,8 +262,42 @@ export async function POST(request: Request) {
               chatId: id,
               context: finalMergedUsage,
             });
+
+            // Track OpenAI usage in analytics
+            const modelId = finalMergedUsage.modelId || selectedChatModel;
+            const promptTokens = finalMergedUsage.promptTokens || 0;
+            const completionTokens = finalMergedUsage.completionTokens || 0;
+            const totalTokens = finalMergedUsage.totalTokens || 0;
+
+            // Calculate estimated cost
+            // GPT-4o pricing: ~$2.50 per 1M input tokens, ~$10 per 1M output tokens
+            let estimatedCost = 0;
+
+            if (promptTokens > 0 || completionTokens > 0) {
+              // We have breakdown, use it
+              const inputCost = (promptTokens / 1_000_000) * 2.5;
+              const outputCost = (completionTokens / 1_000_000) * 10;
+              estimatedCost = inputCost + outputCost;
+            } else if (totalTokens > 0) {
+              // No breakdown available, estimate with typical split (30% input, 70% output)
+              const estimatedInput = totalTokens * 0.3;
+              const estimatedOutput = totalTokens * 0.7;
+              const inputCost = (estimatedInput / 1_000_000) * 2.5;
+              const outputCost = (estimatedOutput / 1_000_000) * 10;
+              estimatedCost = inputCost + outputCost;
+            }
+
+            await db.insert(openaiUsage).values({
+              chatId: id,
+              userId: session.user.id,
+              model: modelId,
+              promptTokens,
+              completionTokens,
+              totalTokens,
+              estimatedCost,
+            });
           } catch (err) {
-            console.warn("Unable to persist last usage for chat", id, err);
+            console.warn("Unable to persist usage for chat", id, err);
           }
         }
       },

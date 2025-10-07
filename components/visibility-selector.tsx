@@ -10,14 +10,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useChatVisibility } from "@/hooks/use-chat-visibility";
 import { cn } from "@/lib/utils";
-import {
-  CheckCircleFillIcon,
-  ChevronDownIcon,
-  GlobeIcon,
-  LockIcon,
-} from "./icons";
+import { CheckCircleFillIcon, ChevronDownIcon, LockIcon } from "./icons";
 
-export type VisibilityType = "private" | "public";
+export type VisibilityType = "private";
 
 const visibilities: Array<{
   id: VisibilityType;
@@ -31,27 +26,19 @@ const visibilities: Array<{
     description: "Only you can access this chat",
     icon: <LockIcon />,
   },
-  {
-    id: "public",
-    label: "Public",
-    description: "Anyone with the link can access this chat",
-    icon: <GlobeIcon />,
-  },
 ];
 
 export function VisibilitySelector({
   chatId,
   className,
-  selectedVisibilityType,
 }: {
   chatId: string;
-  selectedVisibilityType: VisibilityType;
 } & React.ComponentProps<typeof Button>) {
   const [open, setOpen] = useState(false);
 
   const { visibilityType, setVisibilityType } = useChatVisibility({
     chatId,
-    initialVisibilityType: selectedVisibilityType,
+    initialVisibilityType: "private",
   });
 
   const selectedVisibility = useMemo(

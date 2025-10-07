@@ -15,6 +15,20 @@ export default async function Page() {
 
   const id = generateUUID();
 
+  // Initial welcome message asking for location
+  const initialMessages = [
+    {
+      id: generateUUID(),
+      role: "assistant" as const,
+      parts: [
+        {
+          type: "text" as const,
+          text: "🌍 Welcome to TourismSpot GPT!\n\nWhere would you like to explore today? Just type a city or destination name.",
+        },
+      ],
+    },
+  ];
+
   const cookieStore = await cookies();
   const modelIdFromCookie = cookieStore.get("chat-model");
 
@@ -25,7 +39,7 @@ export default async function Page() {
           autoResume={false}
           id={id}
           initialChatModel={DEFAULT_CHAT_MODEL}
-          initialMessages={[]}
+          initialMessages={initialMessages}
           initialVisibilityType="private"
           isReadonly={false}
           key={id}
@@ -41,7 +55,7 @@ export default async function Page() {
         autoResume={false}
         id={id}
         initialChatModel={modelIdFromCookie.value}
-        initialMessages={[]}
+        initialMessages={initialMessages}
         initialVisibilityType="private"
         isReadonly={false}
         key={id}

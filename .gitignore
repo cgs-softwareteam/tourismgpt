@@ -44,3 +44,8 @@ yarn-error.log*
 .cursor
 !.playwright/.gitkeep
 .vscode/*
+docs/ADMIN_MANUAL.md
+PLATFORM_OWNER_GUIDE.md
+TECHNICAL_DOCUMENTATION.md
+PROJECT_PLAN.md
+CLAUDE_CONTEXT.md

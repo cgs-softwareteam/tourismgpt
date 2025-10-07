@@ -18,7 +18,7 @@ import { sheetArtifact } from "@/artifacts/sheet/client";
 import { textArtifact } from "@/artifacts/text/client";
 import { useArtifact } from "@/hooks/use-artifact";
 import type { Document, Vote } from "@/lib/db/schema";
-import type { Attachment, ChatMessage } from "@/lib/types";
+import type { ChatMessage } from "@/lib/types";
 import { fetcher } from "@/lib/utils";
 import { ArtifactActions } from "./artifact-actions";
 import { ArtifactCloseButton } from "./artifact-close-button";
@@ -27,7 +27,6 @@ import { MultimodalInput } from "./multimodal-input";
 import { Toolbar } from "./toolbar";
 import { useSidebar } from "./ui/sidebar";
 import { VersionFooter } from "./version-footer";
-import type { VisibilityType } from "./visibility-selector";
 
 export const artifactDefinitions = [
   textArtifact,
@@ -58,15 +57,12 @@ function PureArtifact({
   setInput,
   status,
   stop,
-  attachments,
-  setAttachments,
   sendMessage,
   messages,
   setMessages,
   regenerate,
   votes,
   isReadonly,
-  selectedVisibilityType,
   selectedModelId,
 }: {
   chatId: string;
@@ -74,15 +70,12 @@ function PureArtifact({
   setInput: Dispatch<SetStateAction<string>>;
   status: UseChatHelpers<ChatMessage>["status"];
   stop: UseChatHelpers<ChatMessage>["stop"];
-  attachments: Attachment[];
-  setAttachments: Dispatch<SetStateAction<Attachment[]>>;
   messages: ChatMessage[];
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
   votes: Vote[] | undefined;
   sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
-  selectedVisibilityType: VisibilityType;
   selectedModelId: string;
 }) {
   const { artifact, setArtifact, metadata, setMetadata } = useArtifact();
@@ -325,6 +318,7 @@ function PureArtifact({
                   isReadonly={isReadonly}
                   messages={messages}
                   regenerate={regenerate}
+                  sendMessage={sendMessage}
                   setMessages={setMessages}
                   status={status}
                   votes={votes}
@@ -332,15 +326,12 @@ function PureArtifact({
 
                 <div className="relative flex w-full flex-row items-end gap-2 px-4 pb-4">
                   <MultimodalInput
-                    attachments={attachments}
                     chatId={chatId}
                     className="bg-background dark:bg-muted"
                     input={input}
                     messages={messages}
                     selectedModelId={selectedModelId}
-                    selectedVisibilityType={selectedVisibilityType}
                     sendMessage={sendMessage}
-                    setAttachments={setAttachments}
                     setInput={setInput}
                     setMessages={setMessages}
                     status={status}
@@ -508,22 +499,16 @@ function PureArtifact({
   );
 }
 
-export const Artifact = memo(PureArtifact, (prevProps, nextProps) => {
-  if (prevProps.status !== nextProps.status) {
-    return false;
-  }
-  if (!equal(prevProps.votes, nextProps.votes)) {
-    return false;
-  }
-  if (prevProps.input !== nextProps.input) {
-    return false;
-  }
-  if (!equal(prevProps.messages, nextProps.messages.length)) {
-    return false;
-  }
-  if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType) {
-    return false;
-  }
+export const Artifact = memo(
+  PureArtifact,
+  (prevProps, nextProps) => {
+    if (!equal(prevProps.attachments, nextProps.attachments)) {
+      return false;
+    }
+    if (!equal(prevProps.messages, nextProps.messages)) {
+      return false;
+    }
 
-  return true;
-});
+    return true;
+  }
+);

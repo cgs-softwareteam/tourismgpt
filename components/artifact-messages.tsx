@@ -14,6 +14,7 @@ type ArtifactMessagesProps = {
   votes: Vote[] | undefined;
   messages: ChatMessage[];
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
+  sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   artifactStatus: UIArtifact["status"];
@@ -25,6 +26,7 @@ function PureArtifactMessages({
   votes,
   messages,
   setMessages,
+  sendMessage,
   regenerate,
   isReadonly,
 }: ArtifactMessagesProps) {
@@ -54,6 +56,7 @@ function PureArtifactMessages({
           requiresScrollPadding={
             hasSentMessage && index === messages.length - 1
           }
+          sendMessage={sendMessage}
           setMessages={setMessages}
           vote={
             votes

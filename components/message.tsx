@@ -23,7 +23,10 @@ import { MessageActions } from "./message-actions";
 import { MessageEditor } from "./message-editor";
 import { MessageReasoning } from "./message-reasoning";
 import { PreviewAttachment } from "./preview-attachment";
+import { PreferenceFilters } from "./preference-filters";
+import { RecommendationCard } from "./recommendation-card";
 import { Weather } from "./weather";
+import { parseRecommendations, type ParsedRecommendation } from "@/lib/parse-recommendations";
 
 const PurePreviewMessage = ({
   chatId,
@@ -31,6 +34,7 @@ const PurePreviewMessage = ({
   vote,
   isLoading,
   setMessages,
+  sendMessage,
   regenerate,
   isReadonly,
   requiresScrollPadding,
@@ -40,6 +44,7 @@ const PurePreviewMessage = ({
   vote: Vote | undefined;
   isLoading: boolean;
   setMessages: UseChatHelpers<ChatMessage>["setMessages"];
+  sendMessage: UseChatHelpers<ChatMessage>["sendMessage"];
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
@@ -122,6 +127,71 @@ const PurePreviewMessage = ({
 
             if (type === "text") {
               if (mode === "view") {
+                // Check for filter marker in assistant messages
+                const filterMatch = message.role === "assistant"
+                  ? part.text.match(/\[FILTER_OPTIONS:(.+?)\]/)
+                  : null;
+
+                if (filterMatch) {
+                  const location = filterMatch[1];
+                  const textBeforeMarker = part.text.substring(0, filterMatch.index);
+
+                  return (
+                    <div key={key}>
+                      {textBeforeMarker && (
+                        <MessageContent
+                          className="bg-transparent px-0 py-0 text-left"
+                          data-testid="message-content"
+                        >
+                          <Response>{sanitizeText(textBeforeMarker)}</Response>
+                        </MessageContent>
+                      )}
+                      <PreferenceFilters
+                        chatId={chatId}
+                        location={location}
+                        sendMessage={sendMessage}
+                      />
+                    </div>
+                  );
+                }
+
+                // Check for recommendations in assistant messages
+                if (message.role === "assistant") {
+                  const parsed = parseRecommendations(part.text);
+
+                  if (parsed.hasRecommendations) {
+                    // Extract location from previous messages (simple heuristic)
+                    const location = "the location"; // TODO: Track location in chat context
+
+                    return (
+                      <div key={key}>
+                        {parsed.sections.map((section, sectionIdx) => {
+                          if (section.type === "text") {
+                            return (
+                              <MessageContent
+                                key={`section-${sectionIdx}`}
+                                className="bg-transparent px-0 py-0 text-left"
+                                data-testid="message-content"
+                              >
+                                <Response>{sanitizeText(section.content as string)}</Response>
+                              </MessageContent>
+                            );
+                          } else {
+                            return (
+                              <RecommendationCard
+                                key={`rec-${sectionIdx}`}
+                                recommendation={section.content as ParsedRecommendation}
+                                location={location}
+                                chatId={chatId}
+                              />
+                            );
+                          }
+                        })}
+                      </div>
+                    );
+                  }
+                }
+
                 return (
                   <div key={key}>
                     <MessageContent

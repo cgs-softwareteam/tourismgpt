@@ -2,10 +2,12 @@ import type { InferSelectModel } from "drizzle-orm";
 import {
   boolean,
   foreignKey,
+  integer,
   json,
   jsonb,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uuid,
@@ -17,6 +19,7 @@ export const user = pgTable("User", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   email: varchar("email", { length: 64 }).notNull(),
   password: varchar("password", { length: 64 }),
+  isAdmin: boolean("isAdmin").notNull().default(false),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -171,3 +174,49 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+// Tourism-specific tables
+
+export const preferenceFilter = pgTable("PreferenceFilter", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  label: text("label").notNull(),
+  icon: text("icon"),
+  value: varchar("value", { length: 50 }).notNull().unique(),
+  orderIndex: integer("orderIndex").notNull().default(0),
+  isActive: boolean("isActive").notNull().default(true),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+  updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+});
+
+export type PreferenceFilter = InferSelectModel<typeof preferenceFilter>;
+
+export const recommendationClick = pgTable("RecommendationClick", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId").references(() => user.id),
+  chatId: uuid("chatId").references(() => chat.id),
+  recommendationName: text("recommendationName").notNull(),
+  category: varchar("category", { length: 50 }).notNull(), // "attraction", "dining", "shopping", etc.
+  location: text("location").notNull(),
+  action: varchar("action", { length: 50 }).notNull(), // "view", "save", "directions", "more_info"
+  clickedAt: timestamp("clickedAt").notNull().defaultNow(),
+});
+
+export type RecommendationClick = InferSelectModel<typeof recommendationClick>;
+
+export const openaiUsage = pgTable("OpenAIUsage", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  chatId: uuid("chatId")
+    .notNull()
+    .references(() => chat.id),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id),
+  model: varchar("model", { length: 50 }).notNull(),
+  promptTokens: integer("promptTokens").notNull(),
+  completionTokens: integer("completionTokens").notNull(),
+  totalTokens: integer("totalTokens").notNull(),
+  estimatedCost: real("estimatedCost"), // in USD
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type OpenAIUsage = InferSelectModel<typeof openaiUsage>;

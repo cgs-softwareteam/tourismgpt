@@ -11,13 +11,11 @@ export const myProvider = isTestEnvironment
       const {
         artifactModel,
         chatModel,
-        reasoningModel,
         titleModel,
       } = require("./models.mock");
       return customProvider({
         languageModels: {
-          "chat-model": chatModel,
-          "chat-model-reasoning": reasoningModel,
+          "chat-gpt": chatModel,
           "title-model": titleModel,
           "artifact-model": artifactModel,
         },
@@ -25,8 +23,7 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": openai("gpt-4.1"),
-        "chat-model-reasoning": wrapLanguageModel({
+        "chat-gpt": wrapLanguageModel({
           model: openai("gpt-4o"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
