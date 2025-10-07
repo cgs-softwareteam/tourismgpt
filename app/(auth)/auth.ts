@@ -113,15 +113,17 @@ export const {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.type = token.type;
-
-        // For Google OAuth users, fetch their user ID from database
-        if (!token.id && session.user.email) {
+        // Always fetch user from database to ensure correct ID
+        if (session.user.email) {
           const users = await getUser(session.user.email);
           if (users.length > 0) {
             session.user.id = users[0].id;
+            session.user.type = token.type || "regular";
           }
+        } else {
+          // Fallback to token ID if no email (shouldn't happen)
+          session.user.id = token.id;
+          session.user.type = token.type;
         }
       }
 
