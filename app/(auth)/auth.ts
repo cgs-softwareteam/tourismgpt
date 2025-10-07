@@ -2,6 +2,7 @@ import { compare } from "bcrypt-ts";
 import NextAuth, { type DefaultSession } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
 import { DUMMY_PASSWORD } from "@/lib/constants";
 import { createGuestUser, getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
@@ -39,6 +40,10 @@ export const {
 } = NextAuth({
   ...authConfig,
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    }),
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
@@ -75,18 +80,49 @@ export const {
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    async signIn({ user, account }) {
+      // Handle Google OAuth sign-in
+      if (account?.provider === "google" && user.email) {
+        const existingUsers = await getUser(user.email);
+
+        if (existingUsers.length === 0) {
+          // Create new user for Google OAuth (no password needed)
+          const { drizzle } = await import("drizzle-orm/postgres-js");
+          const postgres = (await import("postgres")).default;
+          const { user: userTable } = await import("@/lib/db/schema");
+
+          const client = postgres(process.env.POSTGRES_URL!);
+          const db = drizzle(client);
+
+          await db.insert(userTable).values({
+            email: user.email,
+            password: null  // Google OAuth users don't have a password
+          });
+        }
+      }
+      return true;
+    },
+    jwt({ token, user, account }) {
       if (user) {
         token.id = user.id as string;
-        token.type = user.type;
+        // Google OAuth users are "regular" type
+        token.type = account?.provider === "google" ? "regular" : (user.type || "regular");
       }
 
       return token;
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (session.user) {
         session.user.id = token.id;
         session.user.type = token.type;
+
+        // For Google OAuth users, fetch their user ID from database
+        if (!token.id && session.user.email) {
+          const users = await getUser(session.user.email);
+          if (users.length > 0) {
+            session.user.id = users[0].id;
+          }
+        }
       }
 
       return session;
