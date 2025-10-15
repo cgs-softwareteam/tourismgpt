@@ -20,6 +20,7 @@ type MessagesProps = {
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   isArtifactVisible: boolean;
+  userId?: string;
 };
 
 function PureMessages({
@@ -31,6 +32,8 @@ function PureMessages({
   sendMessage,
   regenerate,
   isReadonly,
+  isArtifactVisible,
+  userId,
 }: MessagesProps) {
   const {
     containerRef: messagesContainerRef,
@@ -83,6 +86,7 @@ function PureMessages({
               }
               sendMessage={sendMessage}
               setMessages={setMessages}
+              userId={userId}
               vote={
                 votes
                   ? votes.find((vote) => vote.messageId === message.id)

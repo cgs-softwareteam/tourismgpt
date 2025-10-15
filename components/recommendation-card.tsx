@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { MapPin, Save, Info, Clock, Star, MapPinned, Users, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { ParsedRecommendation } from "@/lib/parse-recommendations";
 
 interface RecommendationCardProps {
@@ -22,6 +22,24 @@ const categoryIcons: Record<string, string> = {
   event: "🎫",
 };
 
+// Function to get color for price labels
+const getPriceColor = (price: string): string => {
+  if (!price) return "text-muted-foreground";
+
+  switch (price.toLowerCase()) {
+    case "budget-friendly":
+      return "text-green-600";
+    case "moderate":
+      return "text-yellow-600";
+    case "expensive":
+      return "text-orange-600";
+    case "very expensive":
+      return "text-red-600";
+    default:
+      return "text-muted-foreground";
+  }
+};
+
 export function RecommendationCard({
   recommendation,
   location,
@@ -31,6 +49,77 @@ export function RecommendationCard({
   const [isSaved, setIsSaved] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Check if recommendation is already saved
+  useEffect(() => {
+    if (!userId) return;
+
+    const checkSavedStatus = async () => {
+      try {
+        const response = await fetch(
+          `/api/check-saved?name=${encodeURIComponent(recommendation.name)}&location=${encodeURIComponent(location)}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          setIsSaved(data.isSaved);
+        }
+      } catch (error) {
+        console.error("Error checking saved status:", error);
+      }
+    };
+
+    checkSavedStatus();
+  }, [userId, recommendation.name, location]);
+
+  const handleSave = async () => {
+    if (!userId || isSaving) {
+      return;
+    }
+
+    await trackClick("save");
+    setIsSaving(true);
+    try {
+      if (isSaved) {
+        // Unsave
+        const response = await fetch(
+          `/api/unsave-recommendation?name=${encodeURIComponent(recommendation.name)}&location=${encodeURIComponent(location)}`,
+          { method: "DELETE" }
+        );
+
+        if (response.ok) {
+          setIsSaved(false);
+        }
+      } else {
+        // Save
+        const response = await fetch("/api/save-recommendation", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatId,
+            recommendationName: recommendation.name,
+            category: recommendation.category,
+            location,
+            description: recommendation.description,
+            price: recommendation.price,
+            rating: recommendation.rating,
+            hours: recommendation.hours,
+            address: recommendation.address,
+            bestFor: recommendation.bestFor,
+            tips: recommendation.tips,
+          }),
+        });
+
+        if (response.ok) {
+          setIsSaved(true);
+        }
+      }
+    } catch (error) {
+      console.error("Error saving/unsaving recommendation:", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const trackClick = async (action: string) => {
     if (isTracking) return;
@@ -55,11 +144,6 @@ export function RecommendationCard({
     }
   };
 
-  const handleSave = async () => {
-    await trackClick("save");
-    setIsSaved(true);
-    // TODO: Implement actual save to database
-  };
 
   const handleDirections = async () => {
     await trackClick("directions");
@@ -88,7 +172,7 @@ export function RecommendationCard({
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-lg">{recommendation.name}</h3>
-            <span className="text-sm font-medium text-muted-foreground whitespace-nowrap">
+            <span className={`text-sm font-medium whitespace-nowrap ${getPriceColor(recommendation.price)}`}>
               {recommendation.price}
             </span>
           </div>
@@ -132,7 +216,7 @@ export function RecommendationCard({
             </div>
           )}
 
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-sm text-foreground">
             {recommendation.description}
           </p>
 
@@ -168,7 +252,7 @@ export function RecommendationCard({
           <div className="mt-3 flex flex-wrap gap-2">
             <button
               onClick={handleSave}
-              disabled={isTracking}
+              disabled={isSaving || isTracking}
               className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
                 isSaved
                   ? "border-primary bg-primary/10 text-primary"
@@ -176,7 +260,7 @@ export function RecommendationCard({
               }`}
             >
               <Save className="h-3.5 w-3.5" />
-              {isSaved ? "Saved" : "Save"}
+              {isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}
             </button>
 
             <button

@@ -40,9 +40,9 @@ export default function Page() {
       setIsSuccessful(true);
       updateSession();
 
-      // Redirect to homepage after successful registration
+      // Redirect to chat after successful registration
       setTimeout(() => {
-        router.push("/");
+        router.push("/chat");
       }, 500);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -54,11 +54,11 @@ export default function Page() {
   };
 
   const handleGoogleSignUp = async () => {
-    await nextAuthSignIn("google", { callbackUrl: "/" });
+    await nextAuthSignIn("google", { callbackUrl: "/chat" });
   };
 
   const handleFacebookSignUp = async () => {
-    await nextAuthSignIn("facebook", { callbackUrl: "/" });
+    await nextAuthSignIn("facebook", { callbackUrl: "/chat" });
   };
 
   return (

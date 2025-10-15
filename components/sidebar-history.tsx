@@ -2,11 +2,13 @@
 
 import { isToday, isYesterday, subMonths, subWeeks } from "date-fns";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import type { User } from "next-auth";
 import { useState } from "react";
 import { toast } from "sonner";
 import useSWRInfinite from "swr/infinite";
+import { Save } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -207,6 +209,27 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
 
   return (
     <>
+      {/* Saved Recommendations */}
+      <SidebarGroup>
+        <div className="px-2 py-1 text-sidebar-foreground/50 text-xs">
+          Saved
+        </div>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <div className="flex flex-col">
+              <Link
+                href="/saved"
+                className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                onClick={() => setOpenMobile(false)}
+              >
+                <Save className="h-4 w-4" />
+                Saved Recommendations
+              </Link>
+            </div>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+
       <SidebarGroup>
         <SidebarGroupContent>
           <SidebarMenu>

@@ -220,3 +220,26 @@ export const openaiUsage = pgTable("OpenAIUsage", {
 });
 
 export type OpenAIUsage = InferSelectModel<typeof openaiUsage>;
+
+export const savedRecommendation = pgTable("SavedRecommendation", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  userId: uuid("userId")
+    .notNull()
+    .references(() => user.id),
+  chatId: uuid("chatId")
+    .notNull()
+    .references(() => chat.id),
+  recommendationName: text("recommendationName").notNull(),
+  category: varchar("category", { length: 50 }).notNull(), // "attraction", "dining", "shopping", etc.
+  location: text("location").notNull(),
+  description: text("description"),
+  price: varchar("price", { length: 50 }),
+  rating: varchar("rating", { length: 20 }),
+  hours: text("hours"),
+  address: text("address"),
+  bestFor: text("bestFor"),
+  tips: text("tips"),
+  savedAt: timestamp("savedAt").notNull().defaultNow(),
+});
+
+export type SavedRecommendation = InferSelectModel<typeof savedRecommendation>;

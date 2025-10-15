@@ -38,6 +38,7 @@ export function Chat({
   isReadonly,
   autoResume,
   initialLastContext,
+  userId,
 }: {
   id: string;
   initialMessages: ChatMessage[];
@@ -45,6 +46,7 @@ export function Chat({
   isReadonly: boolean;
   autoResume: boolean;
   initialLastContext?: AppUsage;
+  userId?: string;
 }) {
   const { mutate } = useSWRConfig();
   const { setDataStream } = useDataStream();
@@ -152,6 +154,7 @@ export function Chat({
           sendMessage={sendMessage}
           setMessages={setMessages}
           status={status}
+          userId={userId}
           votes={votes}
         />
 

@@ -38,6 +38,7 @@ const PurePreviewMessage = ({
   regenerate,
   isReadonly,
   requiresScrollPadding,
+  userId,
 }: {
   chatId: string;
   message: ChatMessage;
@@ -48,6 +49,7 @@ const PurePreviewMessage = ({
   regenerate: UseChatHelpers<ChatMessage>["regenerate"];
   isReadonly: boolean;
   requiresScrollPadding: boolean;
+  userId?: string;
 }) => {
   const [mode, setMode] = useState<"view" | "edit">("view");
 
@@ -183,6 +185,7 @@ const PurePreviewMessage = ({
                                 recommendation={section.content as ParsedRecommendation}
                                 location={location}
                                 chatId={chatId}
+                                userId={userId}
                               />
                             );
                           }

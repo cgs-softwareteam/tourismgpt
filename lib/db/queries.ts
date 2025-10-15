@@ -27,6 +27,7 @@ import {
   message,
   type Suggestion,
   stream,
+  savedRecommendation,
   suggestion,
   type User,
   user,
@@ -53,6 +54,28 @@ export async function getUser(email: string): Promise<User[]> {
   }
 }
 
+export async function updateUserRole({
+  userId,
+  isAdmin,
+}: {
+  userId: string;
+  isAdmin: boolean;
+}) {
+  try {
+    const [updatedUser] = await db
+      .update(user)
+      .set({ isAdmin })
+      .where(eq(user.id, userId))
+      .returning();
+    return updatedUser;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to update user role"
+    );
+  }
+}
+
 export async function createUser(email: string, password: string) {
   const hashedPassword = generateHashedPassword(password);
 
@@ -63,22 +86,6 @@ export async function createUser(email: string, password: string) {
   }
 }
 
-export async function createGuestUser() {
-  const email = `guest-${Date.now()}`;
-  const password = generateHashedPassword(generateUUID());
-
-  try {
-    return await db.insert(user).values({ email, password }).returning({
-      id: user.id,
-      email: user.email,
-    });
-  } catch (_error) {
-    throw new ChatSDKError(
-      "bad_request:database",
-      "Failed to create guest user"
-    );
-  }
-}
 
 export async function saveChat({
   id,
@@ -558,5 +565,136 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
       "bad_request:database",
       "Failed to get stream ids by chat id"
     );
+  }
+}
+
+// Saved Recommendations Functions
+export async function saveRecommendation({
+  userId,
+  chatId,
+  recommendationName,
+  category,
+  location,
+  description,
+  price,
+  rating,
+  hours,
+  address,
+  bestFor,
+  tips,
+}: {
+  userId: string;
+  chatId: string;
+  recommendationName: string;
+  category: string;
+  location: string;
+  description?: string;
+  price?: string;
+  rating?: string;
+  hours?: string;
+  address?: string;
+  bestFor?: string;
+  tips?: string;
+}) {
+  try {
+    const [saved] = await db
+      .insert(savedRecommendation)
+      .values({
+        id: generateUUID(),
+        userId,
+        chatId,
+        recommendationName,
+        category,
+        location,
+        description,
+        price,
+        rating,
+        hours,
+        address,
+        bestFor,
+        tips,
+        savedAt: new Date(),
+      })
+      .returning();
+
+    return saved;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to save recommendation"
+    );
+  }
+}
+
+export async function getSavedRecommendations(userId: string) {
+  try {
+    return await db
+      .select()
+      .from(savedRecommendation)
+      .where(eq(savedRecommendation.userId, userId))
+      .orderBy(desc(savedRecommendation.savedAt));
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to get saved recommendations"
+    );
+  }
+}
+
+export async function unsaveRecommendation({
+  userId,
+  recommendationName,
+  location,
+}: {
+  userId: string;
+  recommendationName: string;
+  location: string;
+}) {
+  try {
+    const [deleted] = await db
+      .delete(savedRecommendation)
+      .where(
+        and(
+          eq(savedRecommendation.userId, userId),
+          eq(savedRecommendation.recommendationName, recommendationName),
+          eq(savedRecommendation.location, location)
+        )
+      )
+      .returning();
+
+    return deleted;
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to unsave recommendation"
+    );
+  }
+}
+
+export async function isRecommendationSaved({
+  userId,
+  recommendationName,
+  location,
+}: {
+  userId: string;
+  recommendationName: string;
+  location: string;
+}) {
+  try {
+    const [saved] = await db
+      .select()
+      .from(savedRecommendation)
+      .where(
+        and(
+          eq(savedRecommendation.userId, userId),
+          eq(savedRecommendation.recommendationName, recommendationName),
+          eq(savedRecommendation.location, location)
+        )
+      )
+      .limit(1);
+
+    return !!saved;
+  } catch (_error) {
+    return false;
   }
 }

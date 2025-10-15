@@ -20,7 +20,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const session = await auth();
 
   if (!session) {
-    redirect("/api/auth/guest");
+    redirect("/login");
   }
 
   if (chat.visibility === "private") {
@@ -42,6 +42,8 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const cookieStore = await cookies();
   const chatModelFromCookie = cookieStore.get("chat-model");
 
+  const userId = session?.user?.id;
+
   if (!chatModelFromCookie) {
     return (
       <>
@@ -52,6 +54,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
           initialLastContext={chat.lastContext ?? undefined}
           initialMessages={uiMessages}
           isReadonly={session?.user?.id !== chat.userId}
+          userId={userId}
         />
         <DataStreamHandler />
       </>
@@ -67,6 +70,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         initialLastContext={chat.lastContext ?? undefined}
         initialMessages={uiMessages}
         isReadonly={session?.user?.id !== chat.userId}
+        userId={userId}
       />
       <DataStreamHandler />
     </>

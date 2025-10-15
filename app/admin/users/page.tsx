@@ -1,6 +1,8 @@
 import { count, desc, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { chat, user } from "@/lib/db/schema";
+import { auth } from "@/app/(auth)/auth";
+import { UserRoleToggle } from "@/components/admin/user-role-toggle";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +28,8 @@ async function getUsers() {
 }
 
 export default async function UsersPage() {
+  const session = await auth();
+  const currentUserId = session?.user?.id || "";
   const { users, totalUsers } = await getUsers();
 
   return (
@@ -51,6 +55,9 @@ export default async function UsersPage() {
                 <th className="px-6 py-3 text-left text-sm font-medium">
                   Chats
                 </th>
+                <th className="px-6 py-3 text-left text-sm font-medium">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -75,6 +82,14 @@ export default async function UsersPage() {
                       {user.chatCount} conversations
                     </p>
                   </td>
+                  <td className="px-6 py-4">
+                    <UserRoleToggle
+                      userId={user.id}
+                      userEmail={user.email}
+                      initialIsAdmin={user.isAdmin}
+                      currentUserId={currentUserId}
+                    />
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -83,13 +98,13 @@ export default async function UsersPage() {
       </div>
 
       <div className="mt-6 rounded-lg border bg-card p-6">
-        <h2 className="text-lg font-semibold">Make User Admin</h2>
+        <h2 className="text-lg font-semibold">Role Management</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          To make a user an admin, run this command in your terminal:
+          Use the toggle switch in the Actions column to change user roles between Admin and User.
         </p>
-        <code className="mt-3 block rounded-lg bg-muted p-3 text-sm">
-          npx tsx scripts/make-admin.ts user@example.com
-        </code>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Note: You cannot remove your own admin privileges.
+        </p>
       </div>
     </div>
   );

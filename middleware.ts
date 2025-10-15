@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
-import { guestRegex, isDevelopmentEnvironment } from "./lib/constants";
+import { isDevelopmentEnvironment } from "./lib/constants";
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -23,18 +23,19 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  if (!token) {
-    const redirectUrl = encodeURIComponent(request.url);
-
-    return NextResponse.redirect(
-      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, request.url)
-    );
+  // Allow unauthenticated access to landing page, login, and register
+  if (!token && !["/", "/login", "/register"].includes(pathname)) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
-  const isGuest = guestRegex.test(token?.email ?? "");
+  // Redirect authenticated users away from auth pages to chat
+  if (token && ["/login", "/register"].includes(pathname)) {
+    return NextResponse.redirect(new URL("/chat", request.url));
+  }
 
-  if (token && !isGuest && ["/login", "/register"].includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  // Redirect authenticated users from landing page to chat
+  if (token && pathname === "/") {
+    return NextResponse.redirect(new URL("/chat", request.url));
   }
 
   return NextResponse.next();
@@ -43,6 +44,7 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/",
+    "/chat",
     "/chat/:id",
     "/api/:path*",
     "/login",

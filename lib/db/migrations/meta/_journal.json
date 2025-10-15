@@ -71,6 +71,13 @@
       "when": 1759840602564,
       "tag": "0009_amused_swordsman",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1760519182686,
+      "tag": "0010_exotic_kylun",
+      "breakpoints": true
     }
   ]
 }
