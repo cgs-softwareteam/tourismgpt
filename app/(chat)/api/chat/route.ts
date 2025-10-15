@@ -43,7 +43,6 @@ import { ChatSDKError } from "@/lib/errors";
 import type { ChatMessage } from "@/lib/types";
 import type { AppUsage } from "@/lib/usage";
 import { convertToUIMessages, generateUUID } from "@/lib/utils";
-import { generateTitleFromUserMessage } from "../../actions";
 import { type PostRequestBody, postRequestBodySchema } from "./schema";
 
 export const maxDuration = 60;
@@ -133,9 +132,12 @@ export async function POST(request: Request) {
         return new ChatSDKError("forbidden:chat").toResponse();
       }
     } else {
-      const title = await generateTitleFromUserMessage({
-        message,
-      });
+      // Generate a simple title from the first message
+      const title = message.parts
+        .filter((part) => part.type === "text")
+        .map((part) => part.text)
+        .join(" ")
+        .slice(0, 100) || "New Chat";
 
       await saveChat({
         id,

@@ -18,21 +18,52 @@
 
 ## Features
 
+### Core Platform
 - [Next.js](https://nextjs.org) App Router
   - Advanced routing for seamless navigation and performance
   - React Server Components (RSCs) and Server Actions for server-side rendering and increased performance
 - [AI SDK](https://ai-sdk.dev/docs/introduction)
   - Unified API for generating text, structured objects, and tool calls with LLMs
   - Hooks for building dynamic chat and generative user interfaces
-  - Supports xAI (default), OpenAI, Fireworks, and other model providers
+  - Supports OpenAI GPT-4o (primary), xAI, Fireworks, and other model providers
 - [shadcn/ui](https://ui.shadcn.com)
   - Styling with [Tailwind CSS](https://tailwindcss.com)
   - Component primitives from [Radix UI](https://radix-ui.com) for accessibility and flexibility
-- Data Persistence
-  - [Neon Serverless Postgres](https://vercel.com/marketplace/neon) for saving chat history and user data
-  - [Vercel Blob](https://vercel.com/storage/blob) for efficient file storage
-- [Auth.js](https://authjs.dev)
-  - Simple and secure authentication
+
+### User Features
+- **Smart Recommendation Engine**
+  - AI-powered tourism recommendations (attractions, dining, activities)
+  - Multi-select preference filters (Family, Luxury, Budget, Adventure, etc.)
+  - Interactive recommendation cards with save, directions, and info actions
+- **Saved Recommendations** ✨ NEW
+  - Save favorite recommendations for future reference
+  - View all saved recommendations in one place
+  - Toggle saved status on/off
+- **Authentication**
+  - Email/password and OAuth (Google, Facebook) via [Auth.js](https://authjs.dev)
+  - Secure session management
+
+### Admin Features
+- **Analytics Dashboard**
+  - User engagement metrics
+  - Top attractions and dining clicks
+  - OpenAI API usage and cost tracking
+- **User Management** ✨ ENHANCED
+  - View all registered users
+  - In-panel role management with toggle switches
+  - Promote/demote users between admin and user roles
+  - Self-demotion protection
+- **Filter Management**
+  - View and monitor preference filters
+  - Dynamic filter loading from database
+
+### Data Persistence
+- [Supabase Postgres](https://supabase.com) for all application data
+  - User accounts and authentication
+  - Chat history and messages
+  - Saved recommendations
+  - Analytics and usage tracking
+  - Admin roles and permissions
 
 ## Model Providers
 
@@ -72,3 +103,22 @@ pnpm dev
 ```
 
 Your TourismSpot GPT instance should now be running on [localhost:3000](http://localhost:3000).
+
+## Documentation
+
+For detailed information about the platform:
+
+- **[Admin Manual](docs/ADMIN_MANUAL.md)** - Complete guide for administrators
+- **[Platform Owner Guide](docs/PLATFORM_OWNER_GUIDE.md)** - Business overview and roadmap
+- **[Technical Documentation](docs/TECHNICAL_DOCUMENTATION.md)** - Architecture and development guide
+
+## Recent Updates (v1.1.0)
+
+- ✅ **Saved Recommendations**: Users can now save and manage favorite recommendations
+- ✅ **Enhanced User Management**: In-panel role toggle for promoting/demoting users
+- ✅ **Improved Admin UX**: Real-time feedback and better authorization flow
+- ✅ **Session Enhancement**: Added `isAdmin` field for efficient role checks
+
+## License
+
+This project is licensed under the MIT License.
