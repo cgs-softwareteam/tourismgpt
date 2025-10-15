@@ -94,60 +94,75 @@ export const {
           const client = postgres(process.env.POSTGRES_URL!);
           const db = drizzle(client);
 
-          await db.insert(userTable).values({
-            email: user.email,
-            password: null  // OAuth users don't have a password
-          });
+          try {
+            await db.insert(userTable).values({
+              email: user.email,
+              password: null  // OAuth users don't have a password
+            });
+            console.log("Created new OAuth user:", user.email);
+          } catch (error) {
+            console.error("Error creating OAuth user:", error);
+            // Continue anyway - user might already exist due to race condition
+          }
         }
       }
       return true;
     },
     jwt({ token, user, account }) {
-      if (user) {
-        token.id = user.id as string;
-        // OAuth users (Google/Facebook) are "regular" type
-        token.type = (account?.provider === "google" || account?.provider === "facebook") ? "regular" : (user.type || "regular");
-        token.isAdmin = user.isAdmin || false;
+      try {
+        if (user) {
+          token.id = user.id as string;
+          // OAuth users (Google/Facebook) are "regular" type
+          token.type = (account?.provider === "google" || account?.provider === "facebook") ? "regular" : (user.type || "regular");
+          token.isAdmin = user.isAdmin || false;
+        }
+      } catch (error) {
+        console.error("Error in JWT callback:", error);
       }
 
       return token;
     },
     async session({ session, token }) {
-      console.log("Session callback - session:", session);
-      console.log("Session callback - token:", token);
+      try {
+        console.log("Session callback - session:", session);
+        console.log("Session callback - token:", token);
 
-      if (session.user) {
-        // Always fetch user from database to ensure correct ID and isAdmin status
-        if (session.user.email) {
-          console.log("Looking up user by email:", session.user.email);
-          const users = await getUser(session.user.email);
-          console.log("Found users:", users);
-          if (users.length > 0) {
-            session.user.id = users[0].id;
-            session.user.type = token.type || "regular";
-            session.user.isAdmin = users[0].isAdmin;
-            console.log("Set session.user.id to:", session.user.id);
-            console.log("Set session.user.isAdmin to:", session.user.isAdmin);
+        if (session.user) {
+          // Always fetch user from database to ensure correct ID and isAdmin status
+          if (session.user.email) {
+            console.log("Looking up user by email:", session.user.email);
+            const users = await getUser(session.user.email);
+            console.log("Found users:", users);
+            if (users.length > 0) {
+              session.user.id = users[0].id;
+              session.user.type = token.type || "regular";
+              session.user.isAdmin = users[0].isAdmin;
+              console.log("Set session.user.id to:", session.user.id);
+              console.log("Set session.user.isAdmin to:", session.user.isAdmin);
+            } else {
+              console.log("No user found in database for email:", session.user.email);
+              // Fallback to token values if user not found in database
+              session.user.id = token.id;
+              session.user.type = token.type || "regular";
+              session.user.isAdmin = token.isAdmin || false;
+            }
           } else {
-            console.log("No user found in database for email:", session.user.email);
-            // Fallback to token values if user not found in database
+            // Fallback to token values if no email (shouldn't happen)
+            console.log("No email in session.user, using token.id:", token.id);
             session.user.id = token.id;
-            session.user.type = token.type || "regular";
+            session.user.type = token.type;
             session.user.isAdmin = token.isAdmin || false;
           }
-        } else {
-          // Fallback to token values if no email (shouldn't happen)
-          console.log("No email in session.user, using token.id:", token.id);
-          session.user.id = token.id;
-          session.user.type = token.type;
-          session.user.isAdmin = token.isAdmin || false;
         }
+
+        console.log("Final session:", session);
+        console.log("Final session.user:", session.user);
+        console.log("Final session.user.id:", session.user?.id);
+        console.log("Final session.user.isAdmin:", session.user?.isAdmin);
+      } catch (error) {
+        console.error("Error in session callback:", error);
       }
 
-      console.log("Final session:", session);
-      console.log("Final session.user:", session.user);
-      console.log("Final session.user.id:", session.user?.id);
-      console.log("Final session.user.isAdmin:", session.user?.isAdmin);
       return session;
     },
   },
