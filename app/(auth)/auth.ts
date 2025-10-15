@@ -3,6 +3,7 @@ import NextAuth, { type DefaultSession } from "next-auth";
 import type { DefaultJWT } from "next-auth/jwt";
 import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
+import Facebook from "next-auth/providers/facebook";
 import { DUMMY_PASSWORD } from "@/lib/constants";
 import { createGuestUser, getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
@@ -44,6 +45,10 @@ export const {
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     }),
+    Facebook({
+      clientId: process.env.FACEBOOK_CLIENT_ID,
+      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
+    }),
     Credentials({
       credentials: {},
       async authorize({ email, password }: any) {
@@ -81,12 +86,12 @@ export const {
   ],
   callbacks: {
     async signIn({ user, account }) {
-      // Handle Google OAuth sign-in
-      if (account?.provider === "google" && user.email) {
+      // Handle OAuth sign-in (Google or Facebook)
+      if ((account?.provider === "google" || account?.provider === "facebook") && user.email) {
         const existingUsers = await getUser(user.email);
 
         if (existingUsers.length === 0) {
-          // Create new user for Google OAuth (no password needed)
+          // Create new user for OAuth (no password needed)
           const { drizzle } = await import("drizzle-orm/postgres-js");
           const postgres = (await import("postgres")).default;
           const { user: userTable } = await import("@/lib/db/schema");
@@ -96,7 +101,7 @@ export const {
 
           await db.insert(userTable).values({
             email: user.email,
-            password: null  // Google OAuth users don't have a password
+            password: null  // OAuth users don't have a password
           });
         }
       }
@@ -105,8 +110,8 @@ export const {
     jwt({ token, user, account }) {
       if (user) {
         token.id = user.id as string;
-        // Google OAuth users are "regular" type
-        token.type = account?.provider === "google" ? "regular" : (user.type || "regular");
+        // OAuth users (Google/Facebook) are "regular" type
+        token.type = (account?.provider === "google" || account?.provider === "facebook") ? "regular" : (user.type || "regular");
       }
 
       return token;

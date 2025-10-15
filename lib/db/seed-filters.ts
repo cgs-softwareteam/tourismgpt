@@ -65,10 +65,17 @@ const initialFilters = [
     isActive: true,
   },
   {
+    label: "Events & Shows",
+    icon: "🎫",
+    value: "events",
+    orderIndex: 9,
+    isActive: true,
+  },
+  {
     label: "Eco-Tourism",
     icon: "🌱",
     value: "eco",
-    orderIndex: 9,
+    orderIndex: 10,
     isActive: true,
   },
 ];

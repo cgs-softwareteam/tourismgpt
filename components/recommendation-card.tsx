@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Save, Info } from "lucide-react";
+import { MapPin, Save, Info, Clock, Star, MapPinned, Users, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 import type { ParsedRecommendation } from "@/lib/parse-recommendations";
 
@@ -19,6 +19,7 @@ const categoryIcons: Record<string, string> = {
   nightlife: "🎭",
   hotel: "🏨",
   activity: "🎯",
+  event: "🎫",
 };
 
 export function RecommendationCard({
@@ -29,6 +30,7 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const [isSaved, setIsSaved] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const trackClick = async (action: string) => {
     if (isTracking) return;
@@ -90,9 +92,78 @@ export function RecommendationCard({
               {recommendation.price}
             </span>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">
+
+          {/* Rating, Hours, Address - Compact info row */}
+          <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+            {recommendation.rating && (
+              <div className="flex items-center gap-1">
+                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <span>{recommendation.rating}</span>
+              </div>
+            )}
+            {recommendation.hours && (
+              <div className="flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5" />
+                <span>{recommendation.hours}</span>
+              </div>
+            )}
+            {recommendation.address && (
+              <div className="flex items-center gap-1">
+                <MapPinned className="h-3.5 w-3.5" />
+                <span>{recommendation.address}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Best For tags */}
+          {recommendation.bestFor && (
+            <div className="mt-2 flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <div className="flex flex-wrap gap-1">
+                {recommendation.bestFor.split(',').map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                  >
+                    {tag.trim()}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="mt-2 text-sm text-muted-foreground">
             {recommendation.description}
           </p>
+
+          {/* Tips section - expandable */}
+          {recommendation.tips && (
+            <div className="mt-3">
+              <button
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="flex w-full items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-left text-sm transition-colors hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50"
+              >
+                <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-500" />
+                <span className="flex-1 font-medium text-amber-900 dark:text-amber-200">
+                  Insider Tips
+                </span>
+                {isExpanded ? (
+                  <ChevronUp className="h-4 w-4 text-amber-600" />
+                ) : (
+                  <ChevronDown className="h-4 w-4 text-amber-600" />
+                )}
+              </button>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200"
+                >
+                  {recommendation.tips}
+                </motion.div>
+              )}
+            </div>
+          )}
 
           <div className="mt-3 flex flex-wrap gap-2">
             <button
