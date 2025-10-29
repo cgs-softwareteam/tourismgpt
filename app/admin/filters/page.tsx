@@ -146,22 +146,22 @@ export default function FiltersPage() {
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold">Preference Filters</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="text-4xl font-bold bg-gradient-to-r from-primary via-secondary to-accent bg-clip-text text-transparent">Preference Filters</h1>
+        <p className="mt-2 text-base text-foreground/70">
           Manage user preference filters
         </p>
       </div>
 
       <div className="mb-6">
-        <Button onClick={handleAdd} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
+        <Button onClick={handleAdd} className="flex items-center gap-2 bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-lg shadow-primary/30 transition-all duration-200 hover:scale-105">
+          <Plus className="h-5 w-5" />
           Add Filter
         </Button>
       </div>
 
       <div className="space-y-4">
-        {filters.map((filter) => (
-          <Card key={filter.id} className="p-4">
+        {filters.map((filter, index) => (
+          <Card key={filter.id} className="p-5 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-slate-800 dark:via-blue-900/10 dark:to-purple-900/10 shadow-lg hover:shadow-xl hover:scale-[1.01] transition-all duration-200">
             {editingFilter === filter.id ? (
               <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
                 <div>
@@ -218,10 +218,10 @@ export default function FiltersPage() {
                   <Label>Active</Label>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button size="sm" onClick={handleSave}>
+                  <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90">
                     <Save className="h-4 w-4" />
                   </Button>
-                  <Button size="sm" variant="outline" onClick={handleCancel}>
+                  <Button size="sm" variant="outline" onClick={handleCancel} className="border-2 border-accent/30 hover:bg-accent/10">
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -229,21 +229,21 @@ export default function FiltersPage() {
             ) : (
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <span className="text-2xl">{filter.icon}</span>
+                  <div className="text-4xl bg-gradient-to-br from-primary/20 to-secondary/20 p-2 rounded-xl">{filter.icon}</div>
                   <div>
-                    <p className="font-medium">{filter.label}</p>
-                    <p className="text-sm text-muted-foreground">
-                      Value: <code>{filter.value}</code> | Order: {filter.orderIndex}
+                    <p className="font-bold text-lg">{filter.label}</p>
+                    <p className="text-sm text-foreground/60 mt-1">
+                      Value: <code className="bg-primary/10 px-2 py-0.5 rounded text-primary font-semibold">{filter.value}</code> | Order: <span className="font-semibold">{filter.orderIndex}</span>
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     {filter.isActive ? (
-                      <span className="rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
-                        Active
+                      <span className="rounded-full bg-gradient-to-r from-green-500 to-green-600 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+                        ✓ Active
                       </span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-medium text-gray-700">
-                        Inactive
+                      <span className="rounded-full bg-gradient-to-r from-gray-400 to-gray-500 px-3 py-1.5 text-xs font-bold text-white shadow-md">
+                        ✕ Inactive
                       </span>
                     )}
                   </div>
@@ -253,6 +253,7 @@ export default function FiltersPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleEdit(filter)}
+                    className="border-2 border-secondary/30 hover:bg-secondary/10 hover:scale-105 transition-all duration-200"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
@@ -260,8 +261,9 @@ export default function FiltersPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleDelete(filter.id)}
+                    className="border-2 border-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:scale-105 transition-all duration-200"
                   >
-                    <Trash2 className="h-4 w-4" />
+                    <Trash2 className="h-4 w-4 text-red-600" />
                   </Button>
                 </div>
               </div>
@@ -270,7 +272,10 @@ export default function FiltersPage() {
         ))}
 
         {isAdding && (
-          <Card className="p-4">
+          <Card className="p-5 rounded-xl border-2 border-accent/30 bg-gradient-to-br from-white via-teal-50/30 to-blue-50/30 dark:from-slate-800 dark:via-teal-900/10 dark:to-blue-900/10 shadow-lg">
+            <div className="mb-3">
+              <h3 className="text-lg font-bold bg-gradient-to-r from-accent to-primary bg-clip-text text-transparent">Add New Filter</h3>
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-6">
               <div>
                 <Label htmlFor="new-label">Label</Label>
@@ -326,10 +331,10 @@ export default function FiltersPage() {
                 <Label>Active</Label>
               </div>
               <div className="flex items-center gap-2">
-                <Button size="sm" onClick={handleSave}>
+                <Button size="sm" onClick={handleSave} className="bg-gradient-to-r from-accent to-primary hover:from-accent/90 hover:to-primary/90">
                   <Save className="h-4 w-4" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={handleCancel}>
+                <Button size="sm" variant="outline" onClick={handleCancel} className="border-2 border-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800">
                   <X className="h-4 w-4" />
                 </Button>
               </div>

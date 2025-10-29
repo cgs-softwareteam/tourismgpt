@@ -22,8 +22,8 @@ export function AppSidebar({ user }: { user: User | undefined }) {
   const { setOpenMobile } = useSidebar();
 
   return (
-    <Sidebar className="group-data-[side=left]:border-r-0">
-      <SidebarHeader>
+    <Sidebar className="group-data-[side=left]:border-r-0 bg-gradient-to-b from-white via-blue-50/30 to-purple-50/30 dark:from-slate-900 dark:via-blue-900/10 dark:to-purple-900/10">
+      <SidebarHeader className="border-b border-primary/10">
         <SidebarMenu>
           <div className="flex flex-row items-center justify-between">
             <Link
@@ -33,21 +33,22 @@ export function AppSidebar({ user }: { user: User | undefined }) {
                 setOpenMobile(false);
               }}
             >
-              <span className="cursor-pointer rounded-md px-2 font-semibold text-lg hover:bg-muted">
+              <div className="text-2xl">🌍</div>
+              <span className="cursor-pointer rounded-md px-2 font-semibold text-lg bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent hover:opacity-80 transition-opacity">
                 TourismSpot GPT
               </span>
             </Link>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
-                  className="h-8 p-1 md:h-fit md:p-2"
+                  className="h-8 p-1 md:h-fit md:p-2 bg-gradient-to-r from-primary to-secondary text-white hover:from-primary/90 hover:to-secondary/90 transition-all duration-200"
                   onClick={() => {
                     setOpenMobile(false);
                     router.push("/chat");
                     router.refresh();
                   }}
                   type="button"
-                  variant="ghost"
+                  variant="default"
                 >
                   <PlusIcon />
                 </Button>
@@ -62,7 +63,7 @@ export function AppSidebar({ user }: { user: User | undefined }) {
       <SidebarContent>
         <SidebarHistory user={user} />
       </SidebarContent>
-      <SidebarFooter>{user && <SidebarUserNav user={user} />}</SidebarFooter>
+      <SidebarFooter className="border-t border-primary/10">{user && <SidebarUserNav user={user} />}</SidebarFooter>
     </Sidebar>
   );
 }

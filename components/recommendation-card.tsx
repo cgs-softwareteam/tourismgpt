@@ -165,35 +165,35 @@ export function RecommendationCard({
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="my-3 rounded-xl border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+      className="my-3 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 dark:from-slate-800 dark:via-blue-900/10 dark:to-purple-900/10 p-5 shadow-lg shadow-primary/10 transition-all duration-300 hover:shadow-xl hover:shadow-primary/20 hover:scale-[1.02]"
     >
       <div className="flex items-start gap-3">
-        <div className="text-3xl">{icon}</div>
+        <div className="text-5xl bg-gradient-to-br from-primary/20 to-secondary/20 p-2 rounded-xl">{icon}</div>
         <div className="flex-1">
           <div className="flex items-start justify-between gap-2">
-            <h3 className="font-semibold text-lg">{recommendation.name}</h3>
-            <span className={`text-sm font-medium whitespace-nowrap ${getPriceColor(recommendation.price)}`}>
+            <h3 className="font-bold text-xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">{recommendation.name}</h3>
+            <span className={`text-base font-bold whitespace-nowrap ${getPriceColor(recommendation.price)}`}>
               {recommendation.price}
             </span>
           </div>
 
           {/* Rating, Hours, Address - Compact info row */}
-          <div className="mt-2 flex flex-wrap gap-3 text-xs text-muted-foreground">
+          <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted-foreground">
             {recommendation.rating && (
               <div className="flex items-center gap-1">
-                <Star className="h-3.5 w-3.5 fill-yellow-400 text-yellow-400" />
+                <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
                 <span>{recommendation.rating}</span>
               </div>
             )}
             {recommendation.hours && (
               <div className="flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5" />
+                <Clock className="h-4 w-4" />
                 <span>{recommendation.hours}</span>
               </div>
             )}
             {recommendation.address && (
               <div className="flex items-center gap-1">
-                <MapPinned className="h-3.5 w-3.5" />
+                <MapPinned className="h-4 w-4" />
                 <span>{recommendation.address}</span>
               </div>
             )}
@@ -202,12 +202,12 @@ export function RecommendationCard({
           {/* Best For tags */}
           {recommendation.bestFor && (
             <div className="mt-2 flex items-center gap-1.5">
-              <Users className="h-3.5 w-3.5 text-muted-foreground" />
+              <Users className="h-4 w-4 text-primary" />
               <div className="flex flex-wrap gap-1">
                 {recommendation.bestFor.split(',').map((tag, idx) => (
                   <span
                     key={idx}
-                    className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary"
+                    className="rounded-full bg-gradient-to-r from-primary/20 to-secondary/20 px-2.5 py-1 text-sm font-semibold text-primary border border-primary/30"
                   >
                     {tag.trim()}
                   </span>
@@ -216,7 +216,7 @@ export function RecommendationCard({
             </div>
           )}
 
-          <p className="mt-2 text-sm text-foreground">
+          <p className="mt-3 text-base text-foreground leading-relaxed">
             {recommendation.description}
           </p>
 
@@ -225,23 +225,23 @@ export function RecommendationCard({
             <div className="mt-3">
               <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex w-full items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2 text-left text-sm transition-colors hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50"
+                className="flex w-full items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-2.5 text-left text-base transition-colors hover:bg-amber-100 dark:bg-amber-950/30 dark:hover:bg-amber-950/50"
               >
-                <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-500" />
-                <span className="flex-1 font-medium text-amber-900 dark:text-amber-200">
+                <Lightbulb className="h-5 w-5 text-amber-600 dark:text-amber-500" />
+                <span className="flex-1 font-semibold text-amber-900 dark:text-amber-200">
                   Insider Tips
                 </span>
                 {isExpanded ? (
-                  <ChevronUp className="h-4 w-4 text-amber-600" />
+                  <ChevronUp className="h-5 w-5 text-amber-600" />
                 ) : (
-                  <ChevronDown className="h-4 w-4 text-amber-600" />
+                  <ChevronDown className="h-5 w-5 text-amber-600" />
                 )}
               </button>
               {isExpanded && (
                 <motion.div
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
-                  className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200"
+                  className="mt-2 rounded-lg border border-amber-200 bg-amber-50/50 px-4 py-3 text-base text-amber-900 dark:border-amber-900 dark:bg-amber-950/20 dark:text-amber-200 leading-relaxed"
                 >
                   {recommendation.tips}
                 </motion.div>
@@ -249,35 +249,35 @@ export function RecommendationCard({
             </div>
           )}
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             <button
               onClick={handleSave}
               disabled={isSaving || isTracking}
-              className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold transition-all duration-200 ${
                 isSaved
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "hover:bg-muted"
+                  ? "border-2 border-primary bg-gradient-to-r from-primary to-secondary text-white shadow-lg shadow-primary/30 hover:shadow-xl hover:scale-105"
+                  : "border-2 border-primary/30 hover:bg-primary/10 hover:border-primary/50"
               }`}
             >
-              <Save className="h-3.5 w-3.5" />
+              <Save className="h-4 w-4" />
               {isSaving ? "Saving..." : isSaved ? "Saved" : "Save"}
             </button>
 
             <button
               onClick={handleDirections}
               disabled={isTracking}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+              className="flex items-center gap-2 rounded-lg border-2 border-accent/30 px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-accent/10 hover:border-accent/50 hover:scale-105"
             >
-              <MapPin className="h-3.5 w-3.5" />
+              <MapPin className="h-4 w-4" />
               Directions
             </button>
 
             <button
               onClick={handleMoreInfo}
               disabled={isTracking}
-              className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+              className="flex items-center gap-2 rounded-lg border-2 border-secondary/30 px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-secondary/10 hover:border-secondary/50 hover:scale-105"
             >
-              <Info className="h-3.5 w-3.5" />
+              <Info className="h-4 w-4" />
               More Info
             </button>
           </div>
