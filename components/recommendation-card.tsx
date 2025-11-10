@@ -1,9 +1,10 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { MapPin, Save, Info, Clock, Star, MapPinned, Users, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
+import { MapPin, Save, Info, Clock, Star, MapPinned, Users, Lightbulb, ChevronDown, ChevronUp, Navigation } from "lucide-react";
 import { useState, useEffect } from "react";
 import type { ParsedRecommendation } from "@/lib/parse-recommendations";
+import { useGeolocation } from "@/hooks/use-geolocation";
 
 interface RecommendationCardProps {
   recommendation: ParsedRecommendation;
@@ -50,6 +51,9 @@ export function RecommendationCard({
   const [isTracking, setIsTracking] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Get user's current location using geolocation hook
+  const { latitude, longitude, error: locationError, loading: locationLoading } = useGeolocation();
 
   // Check if recommendation is already saved
   useEffect(() => {
@@ -147,9 +151,23 @@ export function RecommendationCard({
 
   const handleDirections = async () => {
     await trackClick("directions");
-    // Open Google Maps with location
-    const query = encodeURIComponent(`${recommendation.name} ${location}`);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, "_blank");
+
+    // Build Google Maps URL with directions
+    // If user's location is available, use it as origin (Point A)
+    // Destination (Point B) is the tourist attraction
+    const destination = encodeURIComponent(`${recommendation.name} ${location}`);
+
+    let mapsUrl;
+    if (latitude && longitude) {
+      // User's location is available - show directions from current location to destination
+      // Format: https://www.google.com/maps/dir/?api=1&origin=LAT,LNG&destination=DESTINATION
+      mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${latitude},${longitude}&destination=${destination}&travelmode=driving`;
+    } else {
+      // User's location not available - fallback to search
+      mapsUrl = `https://www.google.com/maps/search/?api=1&query=${destination}`;
+    }
+
+    window.open(mapsUrl, "_blank");
   };
 
   const handleMoreInfo = async () => {
@@ -266,10 +284,26 @@ export function RecommendationCard({
             <button
               onClick={handleDirections}
               disabled={isTracking}
-              className="flex items-center gap-2 rounded-lg border-2 border-accent/30 px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-accent/10 hover:border-accent/50 hover:scale-105"
+              className="flex items-center gap-2 rounded-lg border-2 border-accent/30 px-4 py-2.5 text-sm font-semibold transition-all duration-200 hover:bg-accent/10 hover:border-accent/50 hover:scale-105 relative group"
+              title={
+                latitude && longitude
+                  ? "Get directions from your current location"
+                  : locationLoading
+                  ? "Getting your location..."
+                  : locationError
+                  ? "Location unavailable - will search on map"
+                  : "Get directions"
+              }
             >
-              <MapPin className="h-4 w-4" />
+              {latitude && longitude ? (
+                <Navigation className="h-4 w-4" />
+              ) : (
+                <MapPin className="h-4 w-4" />
+              )}
               Directions
+              {latitude && longitude && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-white dark:ring-slate-800 animate-pulse" />
+              )}
             </button>
 
             <button

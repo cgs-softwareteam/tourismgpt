@@ -3,10 +3,15 @@ import { db } from "@/lib/db";
 import { chat, user } from "@/lib/db/schema";
 import { auth } from "@/app/(auth)/auth";
 import { UserRoleToggle } from "@/components/admin/user-role-toggle";
+import { Pagination } from "@/components/pagination";
 
 export const dynamic = "force-dynamic";
 
-async function getUsers() {
+const USERS_PER_PAGE = 10;
+
+async function getUsers(page: number = 1) {
+  const offset = (page - 1) * USERS_PER_PAGE;
+
   const users = await db
     .select({
       id: user.id,
@@ -18,7 +23,9 @@ async function getUsers() {
     .from(user)
     .leftJoin(chat, sql`${user.id} = ${chat.userId}`)
     .groupBy(user.id, user.email, user.isAdmin, user.createdAt)
-    .orderBy(desc(user.createdAt));
+    .orderBy(desc(user.createdAt))
+    .limit(USERS_PER_PAGE)
+    .offset(offset);
 
   const totalUsers = await db.select({ count: count() }).from(user);
 
@@ -28,10 +35,17 @@ async function getUsers() {
   };
 }
 
-export default async function UsersPage() {
+export default async function UsersPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
   const session = await auth();
   const currentUserId = session?.user?.id || "";
-  const { users, totalUsers } = await getUsers();
+  const params = await searchParams;
+  const currentPage = Number(params.page) || 1;
+  const { users, totalUsers } = await getUsers(currentPage);
+  const totalPages = Math.ceil(totalUsers / USERS_PER_PAGE);
 
   return (
     <div>
@@ -112,6 +126,13 @@ export default async function UsersPage() {
             </tbody>
           </table>
         </div>
+
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalUsers}
+          itemsPerPage={USERS_PER_PAGE}
+        />
       </div>
 
       <div className="mt-6 rounded-xl border-2 border-accent/20 bg-gradient-to-br from-white via-teal-50/30 to-blue-50/30 dark:from-slate-800 dark:via-teal-900/10 dark:to-blue-900/10 p-6 shadow-lg">

@@ -211,7 +211,7 @@ export default function FiltersPage() {
                 <div className="flex items-center space-x-2">
                   <Switch
                     checked={formData.isActive}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked: boolean) =>
                       setFormData({ ...formData, isActive: checked })
                     }
                   />
@@ -324,7 +324,7 @@ export default function FiltersPage() {
               <div className="flex items-center space-x-2">
                 <Switch
                   checked={formData.isActive}
-                  onCheckedChange={(checked) =>
+                  onCheckedChange={(checked: boolean) =>
                     setFormData({ ...formData, isActive: checked })
                   }
                 />
