@@ -1,3 +1,4 @@
+
 <a href="https://tourismgpt.vercel.app/">
   <img alt="TourismSpot GPT destination discovery interface." src="app/(chat)/opengraph-image.png">
   <h1 align="center">TourismSpot GPT</h1>
