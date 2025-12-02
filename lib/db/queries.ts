@@ -32,6 +32,8 @@ import {
   type User,
   user,
   vote,
+  openaiUsage,
+  recommendationClick,
 } from "./schema";
 import { generateHashedPassword } from "./utils";
 
@@ -40,7 +42,9 @@ import { generateHashedPassword } from "./utils";
 // https://authjs.dev/reference/adapter/drizzle
 
 // biome-ignore lint: Forbidden non-null assertion.
-const client = postgres(process.env.POSTGRES_URL!);
+const client = postgres(process.env.POSTGRES_URL!, {
+  prepare: false, // Required for pgbouncer in transaction mode
+});
 const db = drizzle(client);
 
 export async function getUser(email: string): Promise<User[]> {
@@ -113,16 +117,26 @@ export async function saveChat({
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
-    await db.delete(vote).where(eq(vote.chatId, id));
-    await db.delete(message).where(eq(message.chatId, id));
-    await db.delete(stream).where(eq(stream.chatId, id));
+    // Use transaction to ensure all deletes succeed or fail together
+    // This is especially important with pgbouncer
+    const result = await db.transaction(async (tx) => {
+      // Delete related records first (foreign key constraints)
+      await tx.delete(vote).where(eq(vote.chatId, id));
+      await tx.delete(message).where(eq(message.chatId, id));
+      await tx.delete(stream).where(eq(stream.chatId, id));
+      await tx.delete(openaiUsage).where(eq(openaiUsage.chatId, id));
+      await tx.delete(recommendationClick).where(eq(recommendationClick.chatId, id));
+      await tx.delete(savedRecommendation).where(eq(savedRecommendation.chatId, id));
 
-    const [chatsDeleted] = await db
-      .delete(chat)
-      .where(eq(chat.id, id))
-      .returning();
-    return chatsDeleted;
-  } catch (_error) {
+      const [chatsDeleted] = await tx
+        .delete(chat)
+        .where(eq(chat.id, id))
+        .returning();
+      return chatsDeleted;
+    });
+    return result;
+  } catch (error) {
+    console.error("Delete chat error:", error);
     throw new ChatSDKError(
       "bad_request:database",
       "Failed to delete chat by id"

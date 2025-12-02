@@ -91,7 +91,9 @@ export const {
           const postgres = (await import("postgres")).default;
           const { user: userTable } = await import("@/lib/db/schema");
 
-          const client = postgres(process.env.POSTGRES_URL!);
+          const client = postgres(process.env.POSTGRES_URL!, {
+            prepare: false, // Required for pgbouncer in transaction mode
+          });
           const db = drizzle(client);
 
           try {
@@ -103,6 +105,8 @@ export const {
           } catch (error) {
             console.error("Error creating OAuth user:", error);
             // Continue anyway - user might already exist due to race condition
+          } finally {
+            await client.end();
           }
         }
       }

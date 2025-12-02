@@ -172,8 +172,8 @@ export function RecommendationCard({
 
   const handleMoreInfo = async () => {
     await trackClick("more_info");
-    // Open Google search
-    const query = encodeURIComponent(`${recommendation.name} ${location}`);
+    // Open Google search with just the attraction name
+    const query = encodeURIComponent(recommendation.name);
     window.open(`https://www.google.com/search?q=${query}`, "_blank");
   };
 

@@ -87,7 +87,9 @@ export function getChatHistoryPaginationKey(
   }
 
   if (pageIndex === 0) {
-    return `/api/history?limit=${PAGE_SIZE}`;
+    const url = `/api/history?limit=${PAGE_SIZE}`;
+    console.log("History API URL (page 0):", url);
+    return url;
   }
 
   const firstChatFromPage = previousPageData.chats.at(-1);
@@ -96,7 +98,9 @@ export function getChatHistoryPaginationKey(
     return null;
   }
 
-  return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
+  const url = `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`;
+  console.log("History API URL (page", pageIndex, "):", url);
+  return url;
 }
 
 export function SidebarHistory({ user }: { user: User | undefined }) {
@@ -109,9 +113,15 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     isValidating,
     isLoading,
     mutate,
+    error,
   } = useSWRInfinite<ChatHistory>(getChatHistoryPaginationKey, fetcher, {
     fallbackData: [],
   });
+
+  // Debug logging
+  if (error) {
+    console.error("SWR Error fetching history:", error);
+  }
 
   const router = useRouter();
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -125,32 +135,38 @@ export function SidebarHistory({ user }: { user: User | undefined }) {
     ? paginatedChatHistories.every((page) => page.chats.length === 0)
     : false;
 
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const deletePromise = fetch(`/api/chat?id=${deleteId}`, {
       method: "DELETE",
     });
 
+    setShowDeleteDialog(false);
+
     toast.promise(deletePromise, {
       loading: "Deleting chat...",
-      success: () => {
-        mutate((chatHistories) => {
-          if (chatHistories) {
-            return chatHistories.map((chatHistory) => ({
-              ...chatHistory,
-              chats: chatHistory.chats.filter((chat) => chat.id !== deleteId),
-            }));
-          }
-        });
-
-        return "Chat deleted successfully";
-      },
+      success: "Chat deleted successfully",
       error: "Failed to delete chat",
     });
 
-    setShowDeleteDialog(false);
+    try {
+      await deletePromise;
 
-    if (deleteId === id) {
-      router.push("/");
+      // Update the cache after successful deletion
+      mutate((chatHistories) => {
+        if (chatHistories) {
+          return chatHistories.map((chatHistory) => ({
+            ...chatHistory,
+            chats: chatHistory.chats.filter((chat) => chat.id !== deleteId),
+          }));
+        }
+      }, false);
+
+      // Redirect if the deleted chat was active
+      if (deleteId === id) {
+        router.push("/");
+      }
+    } catch (error) {
+      console.error("Failed to delete chat:", error);
     }
   };
 

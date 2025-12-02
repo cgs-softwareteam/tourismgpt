@@ -5,35 +5,29 @@ import { openaiUsage, recommendationClick } from "@/lib/db/schema";
 export const dynamic = "force-dynamic";
 
 async function getAnalytics() {
-  // Most clicked attractions
+  // Most clicked attractions - group by name only to avoid duplicates
   const topAttractions = await db
     .select({
       name: recommendationClick.recommendationName,
       clicks: sql<number>`count(*)::int`,
-      location: recommendationClick.location,
+      locations: sql<string>`string_agg(DISTINCT CASE WHEN ${recommendationClick.location} NOT IN ('the location', 'Unknown') THEN ${recommendationClick.location} END, ', ')`,
     })
     .from(recommendationClick)
     .where(eq(recommendationClick.category, "attraction"))
-    .groupBy(
-      recommendationClick.recommendationName,
-      recommendationClick.location
-    )
+    .groupBy(recommendationClick.recommendationName)
     .orderBy(desc(sql`count(*)`))
     .limit(10);
 
-  // Most clicked dining options
+  // Most clicked dining options - group by name only to avoid duplicates
   const topDining = await db
     .select({
       name: recommendationClick.recommendationName,
       clicks: sql<number>`count(*)::int`,
-      location: recommendationClick.location,
+      locations: sql<string>`string_agg(DISTINCT CASE WHEN ${recommendationClick.location} NOT IN ('the location', 'Unknown') THEN ${recommendationClick.location} END, ', ')`,
     })
     .from(recommendationClick)
     .where(eq(recommendationClick.category, "dining"))
-    .groupBy(
-      recommendationClick.recommendationName,
-      recommendationClick.location
-    )
+    .groupBy(recommendationClick.recommendationName)
     .orderBy(desc(sql`count(*)`))
     .limit(10);
 
@@ -101,9 +95,11 @@ export default async function AnalyticsPage() {
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-base">{item.name}</p>
-                        <p className="text-sm text-foreground/60">
-                          📍 {item.location}
-                        </p>
+                        {item.locations && item.locations.trim() && (
+                          <p className="text-sm text-foreground/60">
+                            📍 {item.locations}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="rounded-full bg-gradient-to-r from-primary to-secondary px-4 py-1.5 text-sm font-bold text-white shadow-md">
@@ -147,9 +143,11 @@ export default async function AnalyticsPage() {
                       </div>
                       <div className="flex-1">
                         <p className="font-semibold text-base">{item.name}</p>
-                        <p className="text-sm text-foreground/60">
-                          📍 {item.location}
-                        </p>
+                        {item.locations && item.locations.trim() && (
+                          <p className="text-sm text-foreground/60">
+                            📍 {item.locations}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="rounded-full bg-gradient-to-r from-secondary to-accent px-4 py-1.5 text-sm font-bold text-white shadow-md">

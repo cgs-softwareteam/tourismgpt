@@ -162,8 +162,25 @@ const PurePreviewMessage = ({
                   const parsed = parseRecommendations(part.text);
 
                   if (parsed.hasRecommendations) {
-                    // Extract location from previous messages (simple heuristic)
-                    const location = "the location"; // TODO: Track location in chat context
+                    // Extract location from FILTER_OPTIONS marker in the same message or previous messages
+                    let location = "Unknown";
+
+                    // First, check current message for FILTER_OPTIONS
+                    const currentFilterMatch = part.text.match(/\[FILTER_OPTIONS:(.+?)\]/);
+                    if (currentFilterMatch) {
+                      location = currentFilterMatch[1];
+                    } else {
+                      // Check all previous parts of the current message
+                      for (const prevPart of message.parts) {
+                        if (prevPart.type === "text" && prevPart.text) {
+                          const prevFilterMatch = prevPart.text.match(/\[FILTER_OPTIONS:(.+?)\]/);
+                          if (prevFilterMatch) {
+                            location = prevFilterMatch[1];
+                            break;
+                          }
+                        }
+                      }
+                    }
 
                     return (
                       <div key={key}>

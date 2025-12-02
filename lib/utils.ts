@@ -16,9 +16,23 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  console.log("Fetcher called with URL:", url);
+  console.log("Current window location:", typeof window !== 'undefined' ? window.location.href : 'server-side');
+
+  // In development, ensure we use HTTP for localhost to avoid HSTS issues
+  let fetchUrl = url;
+  if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
+    // Force HTTP protocol for relative URLs in localhost development
+    if (url.startsWith('/')) {
+      fetchUrl = `http://localhost:${window.location.port}${url}`;
+      console.log("Forced HTTP URL:", fetchUrl);
+    }
+  }
+
+  const response = await fetch(fetchUrl);
 
   if (!response.ok) {
+    console.error("Fetch failed:", response.status, response.statusText);
     const { code, cause } = await response.json();
     throw new ChatSDKError(code as ErrorCode, cause);
   }
