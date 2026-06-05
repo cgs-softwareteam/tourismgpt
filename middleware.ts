@@ -23,18 +23,28 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  // Allow unauthenticated access to landing page, login, and register
-  if (!token && !["/", "/login", "/register"].includes(pathname)) {
-    return NextResponse.redirect(new URL("/", request.url));
+  const isGuest = token?.type === "guest";
+
+  // Landing, login, and register are always public
+  const publicPaths = ["/", "/login", "/register"];
+
+  // Unauthenticated visitors to any protected route get a guest session
+  // (good for 5 messages/day) instead of being bounced to the landing page.
+  if (!token && !publicPaths.includes(pathname)) {
+    const redirectUrl = encodeURIComponent(request.url);
+    return NextResponse.redirect(
+      new URL(`/api/auth/guest?redirectUrl=${redirectUrl}`, request.url)
+    );
   }
 
-  // Redirect authenticated users away from auth pages to chat
-  if (token && ["/login", "/register"].includes(pathname)) {
+  // Redirect signed-in (non-guest) users away from auth pages to chat.
+  // Guests are allowed through so they can upgrade to a real account.
+  if (token && !isGuest && ["/login", "/register"].includes(pathname)) {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 
-  // Redirect authenticated users from landing page to chat
-  if (token && pathname === "/") {
+  // Redirect signed-in (non-guest) users from the landing page to chat
+  if (token && !isGuest && pathname === "/") {
     return NextResponse.redirect(new URL("/chat", request.url));
   }
 

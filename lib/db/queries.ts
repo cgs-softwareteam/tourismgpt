@@ -90,6 +90,24 @@ export async function createUser(email: string, password: string) {
   }
 }
 
+export async function createGuestUser() {
+  // Unique per guest so concurrent guests never collide
+  const email = `guest-${generateUUID()}`;
+  const password = generateHashedPassword(generateUUID());
+
+  try {
+    return await db
+      .insert(user)
+      .values({ email, password })
+      .returning({ id: user.id, email: user.email });
+  } catch (_error) {
+    throw new ChatSDKError(
+      "bad_request:database",
+      "Failed to create guest user"
+    );
+  }
+}
+
 
 export async function saveChat({
   id,

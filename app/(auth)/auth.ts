@@ -5,10 +5,10 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { getUser } from "@/lib/db/queries";
+import { createGuestUser, getUser } from "@/lib/db/queries";
 import { authConfig } from "./auth.config";
 
-export type UserType = "regular";
+export type UserType = "guest" | "regular";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -76,6 +76,14 @@ export const {
         }
 
         return { ...user, type: "regular", isAdmin: user.isAdmin };
+      },
+    }),
+    Credentials({
+      id: "guest",
+      credentials: {},
+      async authorize() {
+        const [guestUser] = await createGuestUser();
+        return { ...guestUser, type: "guest", isAdmin: false };
       },
     }),
   ],

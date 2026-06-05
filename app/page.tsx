@@ -53,18 +53,21 @@ export default async function LandingPage() {
             Get personalized travel recommendations, itineraries, and insider tips powered by advanced AI technology.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-4">
-            <Link href="/register">
+            <Link href="/chat">
               <Button size="lg" className="text-lg px-8 py-6 w-full sm:w-auto bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 shadow-xl shadow-primary/30 transition-all duration-300 hover:scale-105">
-                Start Exploring
+                Try it Free
                 <span className="ml-2">→</span>
               </Button>
             </Link>
-            <Link href="/login">
+            <Link href="/register">
               <Button size="lg" variant="outline" className="text-lg px-8 py-6 w-full sm:w-auto border-2 border-primary/30 hover:bg-primary/10 backdrop-blur-sm transition-all duration-300 hover:scale-105">
-                Sign In
+                Start Exploring
               </Button>
             </Link>
           </div>
+          <p className="text-sm text-foreground/50">
+            No account needed — try 5 free messages as a guest.
+          </p>
         </div>
       </section>
 

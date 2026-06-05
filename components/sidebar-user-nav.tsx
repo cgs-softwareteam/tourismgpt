@@ -26,6 +26,8 @@ export function SidebarUserNav({ user }: { user: User }) {
   const { data, status } = useSession();
   const { setTheme, resolvedTheme } = useTheme();
 
+  const isGuest = user.email?.startsWith("guest-") ?? false;
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -56,7 +58,7 @@ export function SidebarUserNav({ user }: { user: User }) {
                   width={24}
                 />
                 <span className="truncate" data-testid="user-email">
-                  {user?.email}
+                  {isGuest ? "Guest" : user?.email}
                 </span>
                 <ChevronUp className="ml-auto" />
               </SidebarMenuButton>
@@ -91,13 +93,17 @@ export function SidebarUserNav({ user }: { user: User }) {
                     return;
                   }
 
-                  signOut({
-                    redirectTo: "/",
-                  });
+                  if (isGuest) {
+                    router.push("/login");
+                  } else {
+                    signOut({
+                      redirectTo: "/",
+                    });
+                  }
                 }}
                 type="button"
               >
-                Sign out
+                {isGuest ? "Login to your account" : "Sign out"}
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>
