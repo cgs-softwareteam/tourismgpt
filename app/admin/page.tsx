@@ -1,5 +1,11 @@
-import { Activity, DollarSign, MessageSquare, Users } from "lucide-react";
-import { count, sql } from "drizzle-orm";
+import {
+  Activity,
+  DollarSign,
+  MessageSquare,
+  UserPlus,
+  Users,
+} from "lucide-react";
+import { count, eq, like, notLike, sql } from "drizzle-orm";
 import { StatsCard } from "@/components/admin/stats-card";
 import { db } from "@/lib/db";
 import { chat, openaiUsage, recommendationClick, user } from "@/lib/db/schema";
@@ -7,8 +13,20 @@ import { chat, openaiUsage, recommendationClick, user } from "@/lib/db/schema";
 export const dynamic = "force-dynamic";
 
 async function getStats() {
-  // Total users
-  const totalUsers = await db.select({ count: count() }).from(user);
+  // Registered users only (exclude auto-generated guest accounts)
+  const totalUsers = await db
+    .select({ count: count() })
+    .from(user)
+    .where(notLike(user.email, "guest-%"));
+
+  // Guest users that actually started at least one conversation.
+  // A new guest row is created on every visit, so we only count guests
+  // who have at least one chat (deduplicated by user id).
+  const guestUsers = await db
+    .select({ count: sql<number>`count(distinct ${user.id})::int` })
+    .from(user)
+    .innerJoin(chat, eq(chat.userId, user.id))
+    .where(like(user.email, "guest-%"));
 
   // Total chats
   const totalChats = await db.select({ count: count() }).from(chat);
@@ -29,6 +47,7 @@ async function getStats() {
 
   return {
     totalUsers: totalUsers[0]?.count || 0,
+    guestUsers: guestUsers[0]?.count || 0,
     totalChats: totalChats[0]?.count || 0,
     totalClicks: totalClicks[0]?.count || 0,
     aiUsage: aiUsage[0] || { totalCalls: 0, totalTokens: 0, totalCost: 0 },
@@ -47,12 +66,19 @@ export default async function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <StatsCard
           title="Total Users"
           value={stats.totalUsers}
           icon={Users}
           description="Registered users"
+        />
+
+        <StatsCard
+          title="Guest Users"
+          value={stats.guestUsers}
+          icon={UserPlus}
+          description="Guests with a conversation"
         />
 
         <StatsCard

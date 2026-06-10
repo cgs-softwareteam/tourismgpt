@@ -1,4 +1,4 @@
-import { count, desc, sql } from "drizzle-orm";
+import { count, desc, notLike, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { chat, user } from "@/lib/db/schema";
 import { auth } from "@/app/(auth)/auth";
@@ -12,6 +12,8 @@ const USERS_PER_PAGE = 10;
 async function getUsers(page: number = 1) {
   const offset = (page - 1) * USERS_PER_PAGE;
 
+  // Exclude auto-generated guest accounts (email like "guest-...") so this
+  // page only manages real registered users.
   const users = await db
     .select({
       id: user.id,
@@ -22,12 +24,16 @@ async function getUsers(page: number = 1) {
     })
     .from(user)
     .leftJoin(chat, sql`${user.id} = ${chat.userId}`)
+    .where(notLike(user.email, "guest-%"))
     .groupBy(user.id, user.email, user.isAdmin, user.createdAt)
     .orderBy(desc(user.createdAt))
     .limit(USERS_PER_PAGE)
     .offset(offset);
 
-  const totalUsers = await db.select({ count: count() }).from(user);
+  const totalUsers = await db
+    .select({ count: count() })
+    .from(user)
+    .where(notLike(user.email, "guest-%"));
 
   return {
     users,
