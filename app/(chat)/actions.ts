@@ -12,20 +12,24 @@ import type { ChatMessage } from "@/lib/types";
 export async function getCurrentUserId(): Promise<string | null> {
   const session = await auth();
 
-  if (!session || !session.user?.email) {
+  if (!session?.user) {
     return null;
   }
 
-  try {
-    const users = await getUser(session.user.email);
-    if (users.length > 0) {
-      return users[0].id;
+  if (session.user.email) {
+    try {
+      const users = await getUser(session.user.email);
+      if (users.length > 0) {
+        return users[0].id;
+      }
+    } catch (error) {
+      console.error("Error getting user ID:", error);
     }
-  } catch (error) {
-    console.error("Error getting user ID:", error);
   }
 
-  return null;
+  // Guests aren't persisted until their first message — fall back to the
+  // id carried in the JWT session so they still get a stable identifier.
+  return session.user.id ?? null;
 }
 
 export async function deleteTrailingMessages({ id }: { id: string }) {

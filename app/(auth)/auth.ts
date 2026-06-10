@@ -5,7 +5,8 @@ import Credentials from "next-auth/providers/credentials";
 import Google from "next-auth/providers/google";
 import Facebook from "next-auth/providers/facebook";
 import { DUMMY_PASSWORD } from "@/lib/constants";
-import { createGuestUser, getUser } from "@/lib/db/queries";
+import { getUser } from "@/lib/db/queries";
+import { generateUUID } from "@/lib/utils";
 import { authConfig } from "./auth.config";
 
 export type UserType = "guest" | "regular";
@@ -81,9 +82,12 @@ export const {
     Credentials({
       id: "guest",
       credentials: {},
-      async authorize() {
-        const [guestUser] = await createGuestUser();
-        return { ...guestUser, type: "guest", isAdmin: false };
+      authorize() {
+        // No DB row yet — the guest is persisted lazily on their first
+        // message (see ensureGuestUser in the chat route). The id generated
+        // here lives in the JWT and becomes the User.id if/when persisted.
+        const id = generateUUID();
+        return { id, email: `guest-${id}`, type: "guest", isAdmin: false };
       },
     }),
   ],

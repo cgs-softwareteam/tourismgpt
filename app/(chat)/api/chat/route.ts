@@ -30,6 +30,7 @@ import { isProductionEnvironment } from "@/lib/constants";
 import {
   createStreamId,
   deleteChatById,
+  ensureGuestUser,
   getChatById,
   getMessageCountByUserId,
   getMessagesByChatId,
@@ -116,6 +117,12 @@ export async function POST(request: Request) {
     }
 
     const userType: UserType = session.user.type;
+
+    // Persist the guest account on first activity so the User table doesn't
+    // fill up with empty guests created on every visit.
+    if (userType === "guest") {
+      await ensureGuestUser({ id: session.user.id });
+    }
 
     const messageCount = await getMessageCountByUserId({
       id: session.user.id,

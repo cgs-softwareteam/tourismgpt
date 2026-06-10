@@ -90,16 +90,19 @@ export async function createUser(email: string, password: string) {
   }
 }
 
-export async function createGuestUser() {
-  // Unique per guest so concurrent guests never collide
-  const email = `guest-${generateUUID()}`;
-  const password = generateHashedPassword(generateUUID());
-
+// Lazily persist a guest user on their first message. The guest session id
+// is generated at sign-in time and lives only in the JWT until the guest
+// actually sends a message, which keeps the User table free of empty guests.
+export async function ensureGuestUser({ id }: { id: string }) {
   try {
-    return await db
+    await db
       .insert(user)
-      .values({ email, password })
-      .returning({ id: user.id, email: user.email });
+      .values({
+        id,
+        email: `guest-${id}`,
+        password: generateHashedPassword(generateUUID()),
+      })
+      .onConflictDoNothing();
   } catch (_error) {
     throw new ChatSDKError(
       "bad_request:database",
