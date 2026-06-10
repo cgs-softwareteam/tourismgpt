@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import Script from "next/script";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/theme-provider";
+import { VisitTracker } from "@/components/visit-tracker";
 
 import "./globals.css";
 import { SessionProvider } from "next-auth/react";
@@ -94,6 +95,7 @@ export default function RootLayout({
           enableSystem
         >
           <Toaster position="top-center" />
+          <VisitTracker />
           <SessionProvider>{children}</SessionProvider>
         </ThemeProvider>
       </body>

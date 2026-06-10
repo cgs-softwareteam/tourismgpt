@@ -1,6 +1,7 @@
 import {
   Activity,
   DollarSign,
+  Eye,
   MessageSquare,
   UserPlus,
   Users,
@@ -8,7 +9,13 @@ import {
 import { count, eq, like, notLike, sql } from "drizzle-orm";
 import { StatsCard } from "@/components/admin/stats-card";
 import { db } from "@/lib/db";
-import { chat, openaiUsage, recommendationClick, user } from "@/lib/db/schema";
+import {
+  chat,
+  openaiUsage,
+  recommendationClick,
+  siteVisit,
+  user,
+} from "@/lib/db/schema";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +34,9 @@ async function getStats() {
     .from(user)
     .innerJoin(chat, eq(chat.userId, user.id))
     .where(like(user.email, "guest-%"));
+
+  // Total page visits (every page load, not deduplicated)
+  const visitors = await db.select({ count: count() }).from(siteVisit);
 
   // Total chats
   const totalChats = await db.select({ count: count() }).from(chat);
@@ -48,6 +58,7 @@ async function getStats() {
   return {
     totalUsers: totalUsers[0]?.count || 0,
     guestUsers: guestUsers[0]?.count || 0,
+    visitors: visitors[0]?.count || 0,
     totalChats: totalChats[0]?.count || 0,
     totalClicks: totalClicks[0]?.count || 0,
     aiUsage: aiUsage[0] || { totalCalls: 0, totalTokens: 0, totalCost: 0 },
@@ -66,7 +77,14 @@ export default async function AdminDashboard() {
         </p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <StatsCard
+          title="Visitors"
+          value={stats.visitors}
+          icon={Eye}
+          description="Total page visits"
+        />
+
         <StatsCard
           title="Total Users"
           value={stats.totalUsers}

@@ -178,6 +178,16 @@ export type Stream = InferSelectModel<typeof stream>;
 
 // Tourism-specific tables
 
+// Raw page-visit log — one row per page load (no dedup), used for the
+// "Visitors" (total page visits) metric on the admin dashboard.
+export const siteVisit = pgTable("SiteVisit", {
+  id: uuid("id").primaryKey().notNull().defaultRandom(),
+  path: text("path"),
+  createdAt: timestamp("createdAt").notNull().defaultNow(),
+});
+
+export type SiteVisit = InferSelectModel<typeof siteVisit>;
+
 export const preferenceFilter = pgTable("PreferenceFilter", {
   id: uuid("id").primaryKey().notNull().defaultRandom(),
   label: text("label").notNull(),
